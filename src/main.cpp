@@ -34,6 +34,10 @@ int main()
 
   PID pid;
   pid.Init(0.2,0.004,3); // Use initial values from course materials
+  
+  // Uncomment lines below to skip twiddling and skip the optimal coefficients!
+  //pid.Init(0.2,0.004,3); // Final coefficients 
+  //pid.twiddle = false;
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
