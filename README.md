@@ -1,98 +1,70 @@
-# CarND-Controls-PID
-Self-Driving Car Engineer Nanodegree Program
+# PID Controller
 
----
+[//]: # (Image References)
+[image1]: ./doc/intro.png  "intro"
+[image2]: ./doc/Filter_algo.png  "algo"
+[image3]: ./doc/result.png  "result"
 
-## Dependencies
+## Project Goal
+The goal of this project is to create a PID controller that takes in a "Cross Track Error" value and outputs a steering angle.  
 
-* cmake >= 3.5
- * All OSes: [click here for installation instructions](https://cmake.org/install/)
-* make >= 4.1(mac, linux), 3.81(Windows)
-  * Linux: make is installed by default on most Linux distros
-  * Mac: [install Xcode command line tools to get make](https://developer.apple.com/xcode/features/)
-  * Windows: [Click here for installation instructions](http://gnuwin32.sourceforge.net/packages/make.htm)
-* gcc/g++ >= 5.4
-  * Linux: gcc / g++ is installed by default on most Linux distros
-  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
-  * Windows: recommend using [MinGW](http://www.mingw.org/)
-* [uWebSockets](https://github.com/uWebSockets/uWebSockets)
-  * Run either `./install-mac.sh` or `./install-ubuntu.sh`.
-  * If you install from source, checkout to commit `e94b6e1`, i.e.
-    ```
-    git clone https://github.com/uWebSockets/uWebSockets 
-    cd uWebSockets
-    git checkout e94b6e1
-    ```
-    Some function signatures have changed in v0.14.x. See [this PR](https://github.com/udacity/CarND-MPC-Project/pull/3) for more details.
-* Simulator. You can download these from the [project intro page](https://github.com/udacity/self-driving-car-sim/releases) in the classroom.
+## [Rubric Points](https://review.udacity.com/#!/rubrics/824/view)
 
-There's an experimental patch for windows in this [PR](https://github.com/udacity/CarND-PID-Control-Project/pull/3)
+Here I will consider the rubric points individually.  
 
-## Basic Build Instructions
+## Running the Code
+This project uses the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
 
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./pid`. 
+The main program can be built and run by doing the following from the project's top level directory.
 
-Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
+1. mkdir build && cd build
+2. cmake .. && make
+3. ./pid
 
-## Editor Settings
+## Implementation
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+The PID procedure follows what was taught in the lessons.  In general, this includes two parts: The PID Algorithm itself, and parameter optimization. 
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+### PID Algorithm 
 
-## Code Style
+The PID Algorithm looks like this: `angle = -tau_p * cte - tau_d * diff_cte - tau_i * int_cte`.  Terms are described below:
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+|  Term    | Description              |
+|:---------:|:-----------------------:|
+| angle    | Output Steering Angle    |
+| tau_p    | Proportional Coefficient |
+| cte      | Cross Track Error        |
+| tau_d    | Differential Coefficient |
+| diff_cte | Differential CTE         |
+| tau_i    | Integral Coefficient     |
+| int_cte  | Integral CTE             |
 
-## Project Instructions and Rubric
+This is implemented in the `main()` function.  The coefficient values are discussed in the section below, but the diff_cte and int_cte values are based on the incoming CTE on each step.  diff_cte is the difference between the current and last CTE value, and int_cte is the sum of all previous CTE values.  Those values are updated in the `UpdateError()` function of the `PID` class.
 
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
+### Parameter tuning
 
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/e8235395-22dd-4b87-88e0-d108c5e5bbf4/concepts/6a4d8d42-6a04-4aa6-b284-1697c0fd6562)
-for instructions and the project rubric.
+The above algorithm is simple.  The complex part of this task is how to chose appropriate values for the three coefficients.  This was done using a method called "twiddle".  The twiddle implementation can be found in the second half of the `UpdateError()` function of the `PID` class.  More discussion on this can be found in the "Choosing hyperparameters" section below.  The final coefficients arrived at by the twiddle algorithm were as follows:
 
-## Hints!
+| Coefficient  | Value |
+|:------------:|:-----:|
+| Proportional |       |
+| Differential |       |
+| Integral     |       |
 
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
 
-## Call for IDE Profiles Pull Requests
+## Reflection
 
-Help your fellow students!
+### Effects of P,I,D components 
 
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
+All three elements of the PID algorithm have equal weight by default.  However, the 3 coefficients change this weight.  The "I" or "Integral" component is the sum of all previous CTE values, so it obviously has the largest impact.  Thus, the coefficient needs to be quite small to avoid this value overwhelming the algorithm.  In some of my initial testing, I made this value far too high by mistake, and the car was violently steering from left to right.  The "P" or "Proportional" component is the CTE value itself, so it has the second highest impact.  This is the most reactive of the components as it is based solely on the current reading.  It is a direct measure of the how far the car is from the desired path.  The "D" or "Differential" component is the difference from the previous CTE value, so it is typically quite small.  To have any impact, the coefficient here must be significantly larger than the others.  This component acts as a "smoothing" parameter to reduce the turn angle as the CTE decreases (i.e. as the car reaches its destination path).  
 
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
+### Choosing hyperparameters
 
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
+Based on the above knowledge of their impacts, and using the example values from the course , I started with P, I, and D coefficients of 0.2, 0.004, and 3.0 respectively. Then I used the "twiddle" algorithm in the class to tune these based on measurements in the drive.  The initial values were enough to have the car drive reasonably well, and I turned the throttle value down to 0.1 during the twiddle period to avoid driving too quickly with sub-optimal parameters.  Here's a [link to a video recording](./initial_coeff.mp4) of the car driving with the initial coefficient values mentioned above.
 
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
+After this, I had to choose a period of time to measure total error in for the twiddle algorithm.  I choose 500 steps for this as this covered a reasonable span of the track in my testing.  For every 500 steps, the twiddle algorithm either increased or decreased the coefficient by a predefined differential for that coefficient.  This differential started with half the value of the initial coefficient. (I initially used "1" for each of these differentials, but the impact this had on the "I" component of the alghoithm was so large, that each time this was done the car would leave the track and not be able to correct).  If either change represented an improvement in the overall measured error, the coefficient would be set to that value and the differential would be made smaller.  If neither change improved the measured error, the coefficient would be reset to its value before the change, and the differential would grow larger. This process was repeated until a certain threshold was met.  As in the course materials, I chose of value of .2 to be the threshold that all the differentials should sum to.  In the end, the final parameters chosen by the algorithm are noted in the "Parameter tuning" section above.  It took the algorithm ### steps to arrive at these values. 
+ 
+## Results
 
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+Here's a [link to a video recording of my final result](./project_recording.mp4).  
 

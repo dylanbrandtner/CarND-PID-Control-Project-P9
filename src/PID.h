@@ -1,6 +1,8 @@
 #ifndef PID_H
 #define PID_H
 
+
+#include <vector>
 class PID {
 public:
   /*
@@ -16,6 +18,21 @@ public:
   double Kp;
   double Ki;
   double Kd;
+  
+  /*
+  * Twiddle params
+  */
+  double total_error;
+  double best_error;
+  std::vector<double> dp;
+  unsigned int steps;
+  bool twiddle;
+  unsigned int twiddle_index;
+  unsigned int measure_steps;
+  bool twiddled_up;
+  bool twiddled_down;
+  double tolerance;
+
 
   /*
   * Constructor
@@ -38,9 +55,9 @@ public:
   void UpdateError(double cte);
 
   /*
-  * Calculate the total PID error.
+  * Twiddle coefficient of given index up or down
   */
-  double TotalError();
+  void twiddle_coefficient_by_index(unsigned int index, bool up);
 };
 
 #endif /* PID_H */
