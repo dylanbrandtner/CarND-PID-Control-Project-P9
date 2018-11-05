@@ -1,10 +1,5 @@
 # PID Controller
 
-[//]: # (Image References)
-[image1]: ./doc/intro.png  "intro"
-[image2]: ./doc/Filter_algo.png  "algo"
-[image3]: ./doc/result.png  "result"
-
 ## Project Goal
 The goal of this project is to create a PID controller that takes in a "Cross Track Error" value and outputs a steering angle.  
 
@@ -60,7 +55,7 @@ All three elements of the PID algorithm have equal weight by default.  However, 
 
 ### Choosing hyperparameters
 
-Based on the above knowledge of their impacts, and using the example values from the course , I started with P, I, and D coefficients of 0.2, 0.004, and 3.0 respectively. Then I used the "twiddle" algorithm in the class to tune these based on measurements in the drive.  The initial values were enough to have the car drive reasonably well, and I turned the throttle value down to 0.1 during the twiddle period to avoid driving too quickly with sub-optimal parameters.  Here's a [link to a video recording](./initial_coeff.mp4) of the car driving with the initial coefficient values mentioned above.
+Based on the above knowledge of their impacts, and using the example values from the course , I started with P, I, and D coefficients of 0.2, 0.004, and 3.0 respectively. Then I used the "twiddle" algorithm in the class to tune these based on measurements in the drive.  The initial values were enough to have the car drive reasonably well, and I turned the throttle value down to 0.1 during the twiddle period to avoid driving too quickly with sub-optimal parameters.  Here's a [link to a video recording](./doc/initial_coeff.mp4) of the car driving with the initial coefficient values mentioned above.
 
 After this, I had to choose a period of time to measure total error in for the twiddle algorithm.  I choose 500 steps for this as this covered a reasonable span of the track in my testing.  For every 500 steps, the twiddle algorithm either increased or decreased the coefficient by a predefined differential for that coefficient.  This differential started with half the value of the initial coefficient. (I initially used "1" for each of these differentials, but the impact this had on the "I" component of the algorithm was so large, that each time this was done the car would leave the track and not be able to correct).  If either change represented an improvement in the overall measured error, the coefficient would be set to that value and the differential would be made smaller.  If neither change improved the measured error, the coefficient would be reset to its value before the change, and the differential would grow larger. This process was repeated until a certain threshold was met.  As in the course materials, I chose of value of .2 to be the threshold that all the differentials should sum to.  In the end, the final parameters chosen by the algorithm are noted in the "Parameter tuning" section above.  It took the algorithm 107000 steps to arrive at these values. 
  
