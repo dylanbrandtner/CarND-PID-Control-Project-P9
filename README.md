@@ -43,8 +43,8 @@ The above algorithm is simple.  The complex part of this task is how to chose ap
 | Coefficient  | Value      |
 |:------------:|:----------:|
 | Proportional | 0.231067   |
-| Differential | 0.00463536 |
-| Integral     | 6.61135    |
+| Integral     | 0.00463536 |
+| Differential | 6.61135    |
 
 
 ## Reflection
